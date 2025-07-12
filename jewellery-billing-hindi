@@ -1,0 +1,125 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import jsPDF from "jspdf";
+
+export default function JewelleryBillingHindi() {
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [itemName, setItemName] = useState("");
+  const [weight, setWeight] = useState(0);
+  const [rate, setRate] = useState(0);
+  const [karat, setKarat] = useState(22);
+  const [making, setMaking] = useState(0);
+  const [gst, setGst] = useState(3);
+  const [total, setTotal] = useState(null);
+
+  const calculate = () => {
+    const pureRate = karat === 22 ? rate * (22 / 24) : rate;
+    const goldValue = weight * pureRate;
+    const makingCharge = (goldValue * making) / 100;
+    const gstAmount = ((goldValue + makingCharge) * gst) / 100;
+    const totalAmount = goldValue + makingCharge + gstAmount;
+    setTotal(totalAmount);
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("ज्वेलरी बिल", 90, 10);
+    doc.setFontSize(12);
+    doc.text(`ग्राहक नाम: ${customerName}`, 10, 30);
+    doc.text(`फोन नंबर: ${customerPhone}`, 10, 40);
+    doc.text(`आइटम का नाम: ${itemName}`, 10, 50);
+    doc.text(`वज़न: ${weight} ग्राम`, 10, 60);
+    doc.text(`रेट (24K): ₹${rate}/ग्राम`, 10, 70);
+    doc.text(`कैरेट: ${karat}K`, 10, 80);
+    doc.text(`मेकिंग चार्ज: ${making}%`, 10, 90);
+    doc.text(`GST: ${gst}%`, 10, 100);
+    doc.text(`कुल राशि: ₹${total?.toFixed(2)}`, 10, 110);
+    doc.save("jewellery_bill.pdf");
+  };
+
+  return (
+    <div className="p-4 max-w-md mx-auto">
+      <Card className="p-4 space-y-4">
+        <CardContent className="space-y-4">
+          <Label>ग्राहक का नाम</Label>
+          <Input
+            type="text"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="उदाहरण: राम कुमार"
+          />
+
+          <Label>फोन नंबर</Label>
+          <Input
+            type="text"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            placeholder="उदाहरण: 9876543210"
+          />
+
+          <Label>आइटम का नाम</Label>
+          <Input
+            type="text"
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            placeholder="उदाहरण: सोने की अंगूठी"
+          />
+
+          <Label>वज़न (ग्राम में)</Label>
+          <Input
+            type="number"
+            value={weight}
+            onChange={(e) => setWeight(parseFloat(e.target.value))}
+            placeholder="उदाहरण: 13.170"
+          />
+
+          <Label>सोने का भाव (24K प्रति ग्राम)</Label>
+          <Input
+            type="number"
+            value={rate}
+            onChange={(e) => setRate(parseFloat(e.target.value))}
+            placeholder="उदाहरण: 9800"
+          />
+
+          <Label>कैरेट (22 या 24)</Label>
+          <Input
+            type="number"
+            value={karat}
+            onChange={(e) => setKarat(parseInt(e.target.value))}
+            placeholder="उदाहरण: 22"
+          />
+
+          <Label>मेकिंग चार्ज (%)</Label>
+          <Input
+            type="number"
+            value={making}
+            onChange={(e) => setMaking(parseFloat(e.target.value))}
+            placeholder="उदाहरण: 13"
+          />
+
+          <Label>GST (%)</Label>
+          <Input
+            type="number"
+            value={gst}
+            onChange={(e) => setGst(parseFloat(e.target.value))}
+            placeholder="उदाहरण: 3"
+          />
+
+          <Button className="w-full" onClick={calculate}>हिसाब करें</Button>
+
+          {total !== null && (
+            <div className="text-xl font-bold text-green-700">
+              कुल राशि: ₹ {total.toFixed(2)}
+              <Button className="w-full mt-2" onClick={generatePDF}>PDF डाउनलोड करें</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
